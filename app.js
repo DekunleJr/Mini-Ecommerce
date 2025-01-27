@@ -3,7 +3,6 @@ const bodyParser = require('body-parser');
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsDoc = require('swagger-jsdoc');
 const rateLimit = require('express-rate-limit');
-// const multer = require('multer');
 const dotenv = require('dotenv');
 const sequelize = require('./util/database');
 
@@ -12,29 +11,13 @@ const authRoutes = require('./routes/auth');
 
 dotenv.config();
 
-// const fileStorage = multer.diskStorage({
-//     destination: (req, file, cb) => {
-//         cb(null, 'image');
-//     },
-//     filename: (req, file, cb) => {
-//         cb(null, new Date().toDateString() + '-' + file.originalname);
-//     }
-// });
-
-// const fileFilter = (req, file, cb) => {
-//     if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/jpg' || file.mimetype === 'image/png') {
-//         cb(null, true);
-//     } else {
-//         cb(null, false);
-//     }
-// };
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(bodyParser.json());
-// app.use(multer({storage: fileStorage, fileFilter: fileFilter}).single('image'));
+
 
 // Rate Limiting
 const limiter = rateLimit({
@@ -43,25 +26,45 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-// Swagger setup
+
+// Swagger Documentation Setup
 const swaggerOptions = {
   swaggerDefinition: {
     openapi: '3.0.0',
     info: {
       title: 'E-Commerce API',
       version: '1.0.0',
-      description: 'API for managing products in an e-commerce store',
+      description: 'API documentation for the E-Commerce application',
     },
     servers: [
       {
-        url: `http://localhost:${PORT}`,
+        url: 'http://localhost:5000',
+        description: 'Development server',
+      },
+    ],
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+        },
+      },
+    },
+    security: [
+      {
+        bearerAuth: [],
       },
     ],
   },
   apis: ['./routes/*.js'],
 };
+
 const swaggerDocs = swaggerJsDoc(swaggerOptions);
+
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+
+
 
 // Routes
 app.use('/users', authRoutes);

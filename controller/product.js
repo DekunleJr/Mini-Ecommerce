@@ -14,12 +14,19 @@ exports.postProduct = async (req, res, next) => {
 exports.getProducts = async (req, res, next) => {
   try {
     const { page = 1, limit = 10, search, category, minPrice, maxPrice, sortBy = 'name', order = 'ASC' } = req.query;
-    const offset = (page - 1) * limit;
+    // Validate query parameters
+    const parsedPage = parseInt(page, 10);
+    const parsedLimit = parseInt(limit, 10);
+    if (isNaN(parsedPage) || parsedPage < 1 || isNaN(parsedLimit) || parsedLimit < 1) {
+      return res.status(400).json({ message: 'Invalid query parameters' });
+    }
+
+    const offset = (parsedPage - 1) * parsedLimit;
 
     // Build the filter object
     const filter = {};
     if (search) {
-      filter.name = { [Op.iLike]: `%${search}%` };
+      filter.name = { [Op.like]: `%${search}%` };
     }
     if (category) {
       filter.category = category;
